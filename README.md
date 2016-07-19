@@ -5,8 +5,7 @@ It uses NETLINK sockets to listen for Kernel notifications when IP Interface (IP
 
 Build Commands
 ===============
-./configure
-make 
+./configure && make 
 
 Install (as root)
 ==================
