@@ -4,7 +4,8 @@ CXXFLAGS = -Wall -Wshadow -Wcast-qual
 
 bin_PROGRAMS = ipmonit
 ipmonit_SOURCES = \
- src/NetLinkSocket.cpp \
- src/NetLinkListenClient.cpp \
- src/SocketInterface.cpp \
- binary/ipmonit.cpp
+	common/SystemUtils.cpp \
+	src/NetLinkSocket.cpp \
+	src/NetLinkListenClient.cpp \
+	src/SocketInterface.cpp \
+	binary/ipmonit.cpp

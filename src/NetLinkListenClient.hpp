@@ -15,7 +15,7 @@ namespace ipmonit
 {
   class NetLinkListenClient
   {
-	public:
+  public:
     // @param socket: Own the responsibility of provided socket
     NetLinkListenClient(std::auto_ptr<NetLinkSocket> socket);
 
