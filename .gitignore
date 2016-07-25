@@ -1,0 +1,16 @@
+*.o
+*.lo
+*.so
+*.a
+*.swp
+.deps
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+config.cache
+config.status
+config.log
+depcomp
+install-sh
+missing
