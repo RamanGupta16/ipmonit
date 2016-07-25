@@ -13,8 +13,8 @@
 
 namespace ipmonit
 {
-	class NetLinkListenClient
-	{
+  class NetLinkListenClient
+  {
 	public:
     // @param socket: Own the responsibility of provided socket
     NetLinkListenClient(std::auto_ptr<NetLinkSocket> socket);
@@ -38,7 +38,7 @@ namespace ipmonit
 
   private:
     std::auto_ptr<NetLinkSocket> mpNetLinkSocket;
-	};
+  };
 }
 
 #endif // __ipmonit_src_NetLinkListenClient_hpp

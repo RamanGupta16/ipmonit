@@ -12,6 +12,7 @@ namespace ipmonit
     ~NetLinkSocket(); 
 
   public: // SocketInterface
+    // Get the socket File Descriptor
     int GetFd() const;
 
     // @param group: Multicast group to bind. Zero means no mcast group
@@ -22,7 +23,7 @@ namespace ipmonit
     void Close();
 
   private:
-	  int mSocketFd;
+    int mSocketFd;
   };
 }
 
