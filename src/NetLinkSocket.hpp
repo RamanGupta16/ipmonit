@@ -8,18 +8,18 @@ namespace ipmonit
   class NetLinkSocket : public SocketInterface
   {
   public:
-	  NetLinkSocket(int netlinkFamily);
-	  ~NetLinkSocket(); 
+    NetLinkSocket(int netlinkFamily);
+    ~NetLinkSocket(); 
 
   public: // SocketInterface
-	  int GetFd() const;
+    int GetFd() const;
 
-  	// @param group: Multicast group to bind. Zero means no mcast group
-	  // @return     : bind return status or -1 in case of error 
-  	int Bind(int group);
+    // @param group: Multicast group to bind. Zero means no mcast group
+    // @return     : bind return status or -1 in case of error 
+    int Bind(int group);
 
     // Close the socket
-	  void Close();
+    void Close();
 
   private:
 	  int mSocketFd;

@@ -7,9 +7,9 @@ namespace ipmonit
   {
   public:
     ~SocketInterface();
-	  virtual int GetFd() const = 0;
-  	virtual int Bind(int group) = 0;
-	  virtual void Close() = 0;
+    virtual int GetFd() const = 0;
+    virtual int Bind(int group) = 0;
+    virtual void Close() = 0;
   };
 }
 
