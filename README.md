@@ -4,20 +4,22 @@ IP Address Monitor on Linux systems.
 It uses NETLINK sockets to listen for Kernel notifications when IP Interface (IP Address) are added or deleted. This project is implemented using C++.
 
 ## Build Commands
-===================
 * ./configure && make 
 * To build fresh configure script from configure.ac: autoreconf -vfis
 
 ## Install (as root)
-======================
 * make install
 
 ## Compiler
-=============
 * Build and tested with gcc version 4.4.7
 
+## Usage
+````````````
+$ ipmonit --help
+Usage: ipmonit [OPTION...]
+   -b, --daemon      Run as daemon process using syslog for logging
+````````````
 ## Testing
-=============
 * Tested on CentOS6:
    1. Start ipmonit from command prompt.
    2. Add virtual network interface with some IP Address:  ifconfig eth0:0 10.168.150.78 up
