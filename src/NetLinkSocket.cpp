@@ -1,7 +1,9 @@
 #include "NetLinkSocket.hpp"
+#include "common/SystemLogger.hpp"
 
 #include <sys/socket.h>
 #include <linux/netlink.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -17,17 +19,17 @@ NetLinkSocket(int netlinkFamily)
 {
   if(mSocketFd < 0)
   {
-	  stringstream s;
-  	s << "Cannot open NETLINK socket for family:"
-            << netlinkFamily;
-  	perror(s.str().c_str());
+    stringstream s;
+    s << "Cannot open NETLINK socket for family "
+      << netlinkFamily << " Error:" << strerror(errno);
+    SystemLogger::LogError(s.str());
   }
 }
 
 NetLinkSocket::
 ~NetLinkSocket()
 {
-	Close();
+  Close();
 }
 
 int
@@ -37,13 +39,14 @@ Bind(int group)
   int status = -1;
 
   // Get Multicast group bitset
-	if(group > 31 || group < 0)
+  if(group > 31 || group < 0)
   {
-	  cerr << "Mcast group " << group
-         << " is out of range. Use setsockopt for this mcast group "
-         << endl;
-	  return status;
- 	}
+    stringstream s;
+    s << "Mcast group " << group
+      << " is out of range. Use setsockopt for this mcast group ";
+    SystemLogger::LogError(s.str());
+    return status;
+  }
 
   int mcast_group = group ? (1 << (group -1)) : 0;
 
@@ -60,7 +63,9 @@ Bind(int group)
   status = bind(mSocketFd, (struct sockaddr*)&local, sizeof(local));
   if(status < 0)
   {
-    perror("Cannot bind NETLINK socket");
+    stringstream s;
+    s << "Cannot bind NETLINK socket. Error:" << strerror(errno);
+    SystemLogger::LogError(s.str());
     Close();
     return status;
   }
@@ -70,20 +75,26 @@ Bind(int group)
   status = getsockname(mSocketFd, (struct sockaddr*)&local, &addr_len);
   if(status < 0)
   {
-    perror("Cannot getsockname for bound NETLINK socket");
+    stringstream s;
+    s << "Cannot getsockname for bound NETLINK socket. Error:" << strerror(errno);
+    SystemLogger::LogError(s.str());
     Close();
     return status;
   }
   if(addr_len != sizeof(local))
   {
-    cerr << "Wrong address length: " << addr_len << endl;
+    stringstream s;
+    s << "Wrong address length: " << addr_len;
+    SystemLogger::LogError(s.str());
     Close();
     status = -1;
     return status;
   }
   if(local.nl_family != AF_NETLINK)
   {
-    cerr << "Wrong address family: " << local.nl_family << endl;
+    stringstream s;
+    s << "Wrong address family: " << local.nl_family;
+    SystemLogger::LogError(s.str());
     Close();
     status = -1;
     return status;
@@ -96,7 +107,7 @@ int
 NetLinkSocket::
 GetFd() const
 {
-	return mSocketFd;
+  return mSocketFd;
 }
 
 void

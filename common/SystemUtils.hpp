@@ -10,9 +10,7 @@ namespace ipmonit
   {
   public:
     static std::string GetExepath();
-    static void Daemonify(const std::string& fileName,
-                          const std::string& dirName,
-                          std::ofstream* fout);
+    static void Daemonify(const std::string& serverDir);
   };
 }
 

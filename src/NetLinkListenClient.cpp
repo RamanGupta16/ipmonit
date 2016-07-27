@@ -1,4 +1,5 @@
 #include "NetLinkListenClient.hpp"
+#include "common/SystemLogger.hpp"
 
 #include <linux/rtnetlink.h>
 #include <netinet/in.h> // INET_ADDRSTRLEN INET6_ADDRSTRLEN
@@ -22,17 +23,17 @@ namespace
     switch(index)
     {
       case AF_INET:
-      	return "AF_INET";
+        return "AF_INET";
       case AF_INET6:
-	      return "AF_INET6";
+        return "AF_INET6";
       case AF_UNIX:
-	      return "AF_UNIX";
+        return "AF_UNIX";
       case AF_BRIDGE:
-	      return "AF_BRIDGE";
+        return "AF_BRIDGE";
       case AF_UNSPEC:
-    	  return "AF_UNSPEC";
-        default:
-	    return "Unknown";
+        return "AF_UNSPEC";
+      default:
+        return "Unknown";
     }
   }
 }
@@ -43,7 +44,7 @@ NetLinkListenClient(auto_ptr<NetLinkSocket> socket)
 {
   if(mpNetLinkSocket.get() == 0)
   {
-  	cerr << "No NetLink socket found";
+    SystemLogger::LogError("No NetLink socket found");
     // TODO: Throw exception
   }
 }
@@ -73,7 +74,7 @@ Listen()
   string address;
   string label;
 
-  int len = recvmsg(mpNetLinkSocket->GetFd(), &msg, 0);
+  unsigned int len = recvmsg(mpNetLinkSocket->GetFd(), &msg, 0);
   if(len < 0)
   {
     if(errno == EINTR || errno == EAGAIN)
@@ -82,16 +83,19 @@ Listen()
     }
     else
     {
-      perror("recvmsg failure for NETLINK socket");
+      stringstream s;
+      s << "recvmsg() failure for NETLINK socket:"
+        << strerror(errno);
+      SystemLogger::LogError(s.str());
       mpNetLinkSocket->Close();
-      return false;          
+      return false;
     }
   }
   else if (len == 0)
   {
-    cerr << "peer indicates EoF for NETLINK socket" << endl;
+    SystemLogger::LogError("peer indicates EoF (closure) for NETLINK socket");
     mpNetLinkSocket->Close();
-    return false;          
+    return false;
   }
 
   for(nh = (struct nlmsghdr*) recv_buffer; NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len))
@@ -100,40 +104,35 @@ Listen()
     {
       break;
     }
-    
+
     if(nh->nlmsg_type == NLMSG_ERROR)
     {
-      perror("ERROR: ");
+      SystemLogger::LogError(string("peer indicates EoF (closure) for NETLINK socket") +
+                             string(strerror(errno)));
       break;
     }
 
     if(nh->nlmsg_type == RTM_NEWLINK)
-    { 
-      //cout << "New Link Created " << endl;
+    {
       //struct ifinfomsg* ifi = (struct ifinfomsg*)NLMSG_DATA(nh);
-      //cout << "Link is " << (ifi->ifi_flags & IFF_RUNNING ? "UP" : "DOWN") << endl;
     }
 
     if(nh->nlmsg_type == RTM_DELLINK)
     {
-      //cout << "Existing Link Deleted " << endl;
       //struct ifinfomsg* ifi = (struct ifinfomsg*)NLMSG_DATA(nh);
-      //cout << "Link is " << (ifi->ifi_flags & IFF_RUNNING ? "UP" : "DOWN") << endl;
     }
 
     if(nh->nlmsg_type == RTM_NEWADDR)
-    { 
+    {
       if_addr = (struct ifaddrmsg*)NLMSG_DATA(nh);
-      string s = handleAddress(if_addr, nh, &address, &label);
-      //cout << "New Address Added: " << s << endl;
+      handleAddress(if_addr, nh, &address, &label);
       HandleIpAddressAdded(address, label);
     }
 
     if(nh->nlmsg_type == RTM_DELADDR)
     {
       if_addr = (struct ifaddrmsg*)NLMSG_DATA(nh);
-      string s = handleAddress(if_addr, nh, &address, &label);
-      //cout << "Address Deleted: " << s << endl;
+      handleAddress(if_addr, nh, &address, &label);
       HandleIpAddressDeleted(address, label);
     }
   }
@@ -145,14 +144,18 @@ void
 NetLinkListenClient::
 HandleIpAddressAdded(const string& address, const string& label)
 {
-  cout << "Added Address: " << address << " Interface: " << label << endl;
+  stringstream s;
+  s << "Added Address " << address << " Interface " << label << endl;
+  SystemLogger::LogInfo(s.str());
 }
 
 void
 NetLinkListenClient::
 HandleIpAddressDeleted(const string& address, const string& label)
 {
-  cout << "Deleted Address: " << address << " Interface: " << label << endl;
+  stringstream s;
+  s << "Deleted Address " << address << " Interface " << label << endl;
+  SystemLogger::LogInfo(s.str());
 }
 
 string
@@ -162,7 +165,7 @@ handleAddress(const struct ifaddrmsg* ifAddr, const struct nlmsghdr* nh,
 {
   if(!ifAddr || !nh)
   {
-    cerr << "Error in handling RTM_NEWADDR" << endl;
+    SystemLogger::LogDebug("Error: missing data");
     return "";
   }
 
@@ -185,11 +188,11 @@ handleAddress(const struct ifaddrmsg* ifAddr, const struct nlmsghdr* nh,
         {
           break;
         }
-	case IFA_ADDRESS:
+        case IFA_ADDRESS:
         {
           break;
         }
-	case IFA_LOCAL:
+        case IFA_LOCAL:
         {
           int rta_length = RTA_PAYLOAD(rta);
           if(rta_length == 4 && ifAddr->ifa_family == AF_INET)
@@ -210,14 +213,14 @@ handleAddress(const struct ifaddrmsg* ifAddr, const struct nlmsghdr* nh,
           }
           break;
         }
-	case IFA_LABEL:
+        case IFA_LABEL:
         {
           const char* label = static_cast<const char*>(RTA_DATA(rta));
           s << " Label:" << label;
           *pOutLabel = label;
           break;
         }
-	case IFA_BROADCAST:
+        case IFA_BROADCAST:
         {
           struct in_addr* ipv4_addr = static_cast<struct in_addr*>(RTA_DATA(rta));
           char ipv4_address[INET_ADDRSTRLEN];
@@ -225,15 +228,15 @@ handleAddress(const struct ifaddrmsg* ifAddr, const struct nlmsghdr* nh,
           s << " Broadcast Address:" << ipv4_address;
           break;
         }
-	case IFA_ANYCAST:
+        case IFA_ANYCAST:
         {
           break;
         }
-	case IFA_CACHEINFO:
+        case IFA_CACHEINFO:
         {
           break;
         }
-	case IFA_MULTICAST:
+        case IFA_MULTICAST:
         {
           break;
         }
@@ -245,7 +248,9 @@ handleAddress(const struct ifaddrmsg* ifAddr, const struct nlmsghdr* nh,
     }
     else
     {
-      cerr << "Unknown RTA TYPE:" << rta->rta_type << endl;
+      stringstream ss;
+      ss << "Unknown RTA TYPE:" << rta->rta_type << endl;
+      SystemLogger::LogError(s.str());
     }
     rta = RTA_NEXT(rta, len);
   }

@@ -8,7 +8,7 @@
 #include <string.h> // strerror
 #include <stdlib.h> // exit
 
-#include <iostream> // cout
+#include <iostream>
 
 using namespace ipmonit;
 using namespace std;
@@ -24,7 +24,7 @@ GetExepath()
 
 void
 SystemUtils::
-Daemonify(const string& fileName, const string& dirName, ofstream* fout)
+Daemonify(const string& serverDir)
 {
   // Create child process
   pid_t status = fork();
@@ -50,27 +50,20 @@ Daemonify(const string& fileName, const string& dirName, ofstream* fout)
     exit(-1);
   }
 
-  // Change the current working directory to root " / "
-  if(chdir("/") < 0)
+  // Change the current working directory to (default) root " / "
+  string server_dir("/");
+  if(!serverDir.empty())
   {
-    cerr << "Error in changing dir to: " << dirName
-         << " Failure: " << strerror(errno)
-         << endl;
-    exit(-1);
+    server_dir = serverDir;
   }
 
-  if(fout && !dirName.empty() && !fileName.empty())
+  // Change the current working directory
+  if(chdir(server_dir.c_str()) < 0)
   {
-    const string output_file(dirName + "/" + fileName);
-    fout->open(output_file.c_str());
-    if(fout && !fout->is_open())
-    {
-      cerr << "Error opening File for output: "
-           << output_file
-           << endl;
-      fout->close();
-      exit(-1);
-    }
+    cerr << "Error in changing dir to: " << server_dir
+         << " while daemonizing. Failure: " << strerror(errno)
+         << endl;
+    exit(-1);
   }
 
   close(STDIN_FILENO);

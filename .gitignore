@@ -4,6 +4,7 @@
 *.a
 *.swp
 .deps
+ipmonit
 Makefile
 Makefile.in
 aclocal.m4
