@@ -10,6 +10,7 @@
 #include <stdlib.h> // exit
 
 #include <iostream>
+#include <sstream>
 
 using namespace ipmonit;
 using namespace std;
@@ -35,11 +36,15 @@ int main(int argc, const char* argv[])
     exit(1);
   }
 
+  int lockfile_fd = -1;
   if(run_as_daemon)
   {
     const string server_dir("/root");
     SystemUtils::Daemonify(server_dir);
     SystemLogger::SetLogType(SYSLOG);
+
+    // Single instance daemon
+    lockfile_fd = SystemUtils::LockPidFile();
   }
   else
   {
@@ -65,7 +70,14 @@ int main(int argc, const char* argv[])
   // This client now assumes socket responsibility
   NetLinkListenClient netlink_client(netlink_socket);
 
+  stringstream s;
+  s << "Started ipmonit[PID:" << getpid() << "]...";
+  SystemLogger::LogInfo(s.str());
+
   while(netlink_client.Listen());
+
+  // Close the Lock file
+  SystemUtils::CloseLockFile(lockfile_fd);
 
   return 0;
 }

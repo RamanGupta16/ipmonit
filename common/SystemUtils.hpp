@@ -9,8 +9,10 @@ namespace ipmonit
   class SystemUtils
   {
   public:
-    static std::string GetExepath();
+    static std::string GetExePath();
     static void Daemonify(const std::string& serverDir);
+    static int LockPidFile();
+    static void CloseLockFile(int fd);
   };
 }
 
