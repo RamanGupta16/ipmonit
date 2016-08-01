@@ -19,10 +19,9 @@ NetLinkSocket(int netlinkFamily)
 {
   if(mSocketFd < 0)
   {
-    stringstream s;
-    s << "Cannot open NETLINK socket for family "
+    SystemLogger::LogError()
+      << "Cannot open NETLINK socket for family "
       << netlinkFamily << " Error:" << strerror(errno);
-    SystemLogger::LogError(s.str());
   }
 }
 
@@ -41,10 +40,9 @@ Bind(int group)
   // Get Multicast group bitset
   if(group > 31 || group < 0)
   {
-    stringstream s;
-    s << "Mcast group " << group
+    SystemLogger::LogError()
+      << "Mcast group " << group
       << " is out of range. Use setsockopt for this mcast group ";
-    SystemLogger::LogError(s.str());
     return status;
   }
 
@@ -63,9 +61,8 @@ Bind(int group)
   status = bind(mSocketFd, (struct sockaddr*)&local, sizeof(local));
   if(status < 0)
   {
-    stringstream s;
-    s << "Cannot bind NETLINK socket. Error:" << strerror(errno);
-    SystemLogger::LogError(s.str());
+    SystemLogger::LogError()
+      << "Cannot bind NETLINK socket. Error:" << strerror(errno);
     Close();
     return status;
   }
@@ -75,26 +72,21 @@ Bind(int group)
   status = getsockname(mSocketFd, (struct sockaddr*)&local, &addr_len);
   if(status < 0)
   {
-    stringstream s;
-    s << "Cannot getsockname for bound NETLINK socket. Error:" << strerror(errno);
-    SystemLogger::LogError(s.str());
+    SystemLogger::LogError()
+      << "Cannot getsockname for bound NETLINK socket. Error:" << strerror(errno);
     Close();
     return status;
   }
   if(addr_len != sizeof(local))
   {
-    stringstream s;
-    s << "Wrong address length: " << addr_len;
-    SystemLogger::LogError(s.str());
+    SystemLogger::LogError() << "Wrong address length: " << addr_len;
     Close();
     status = -1;
     return status;
   }
   if(local.nl_family != AF_NETLINK)
   {
-    stringstream s;
-    s << "Wrong address family: " << local.nl_family;
-    SystemLogger::LogError(s.str());
+    SystemLogger::LogError() << "Wrong address family: " << local.nl_family;
     Close();
     status = -1;
     return status;

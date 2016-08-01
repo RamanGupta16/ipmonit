@@ -55,14 +55,14 @@ int main(int argc, const char* argv[])
   auto_ptr<NetLinkSocket> netlink_socket(new NetLinkSocket(NETLINK_ROUTE));
   if(netlink_socket.get() == 0)
   {
-    SystemLogger::LogError("Cannot allocate memory for NETLINK socket.");
+    SystemLogger::LogError() << "Cannot allocate memory for NETLINK socket.";
     return -1;
   }
 
   // Bind socket to group
   if(netlink_socket->Bind(RTNLGRP_IPV4_IFADDR) < 0)
   {
-    SystemLogger::LogError("Cannot bind NETLINK socket.");
+    SystemLogger::LogError() << "Cannot bind NETLINK socket.";
     return -1;
   }
 
@@ -70,9 +70,7 @@ int main(int argc, const char* argv[])
   // This client now assumes socket responsibility
   NetLinkListenClient netlink_client(netlink_socket);
 
-  stringstream s;
-  s << "Started ipmonit[PID:" << getpid() << "]...";
-  SystemLogger::LogInfo(s.str());
+  SystemLogger::LogInfo() << "Started ipmonit[PID:" << getpid() << "]...";
 
   while(netlink_client.Listen());
 

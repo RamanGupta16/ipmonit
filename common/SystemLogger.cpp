@@ -6,6 +6,7 @@
 #include <iostream>
 
 using namespace ipmonit;
+using namespace std;
 
 // remove trailing '\n' char
 #define LOG_ON_TERMINAL(msg) \
@@ -23,42 +24,36 @@ SetLogType(LogStrategy strategy)
   mLoggerType = strategy;
 }
 
-void
+StreamLogger
 SystemLogger::
-LogInfo(const std::string& msg)
+LogInfo(const string& append)
 {
-  if(mLoggerType == TERMINAL)
-  {
-    LOG_ON_TERMINAL(msg);
-  }
-  else
-  {
-    openlog(0, LOG_PID, LOG_DAEMON);
-    syslog(LOG_INFO, msg.c_str());
-    closelog();
-  }
+  return StreamLogger(LOG_INFO, append);
+}
+
+StreamLogger
+SystemLogger::
+LogDebug(const string& append)
+{
+  return StreamLogger(LOG_DEBUG, append);
+}
+
+StreamLogger
+SystemLogger::
+LogError(const string& append)
+{
+  return StreamLogger(LOG_ERR, append);
 }
 
 void
 SystemLogger::
-LogDebug(const std::string& msg)
+Log(int priority, const string& msg)
 {
-  if(mLoggerType == TERMINAL)
+  if(priority < LOG_EMERG || priority > LOG_DEBUG)
   {
-    LOG_ON_TERMINAL(msg);
+    priority = LOG_INFO;
   }
-  else
-  {
-    openlog(0, LOG_PID, LOG_DAEMON);
-    syslog(LOG_DEBUG, msg.c_str());
-    closelog();
-  }
-}
 
-void
-SystemLogger::
-LogError(const std::string& msg)
-{
   if(mLoggerType == TERMINAL)
   {
     LOG_ON_TERMINAL(msg);

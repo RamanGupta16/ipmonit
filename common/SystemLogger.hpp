@@ -1,6 +1,8 @@
 #ifndef __ipmonit_common_SystemLogger_hpp
 #define __ipmonit_common_SystemLogger_hpp
 
+#include "StreamLogger.hpp"
+
 #include <string>
 
 namespace ipmonit
@@ -17,9 +19,12 @@ namespace ipmonit
     static void SetLogType(LogStrategy strategy);
 
   public:
-    static void LogInfo(const std::string& msg);
-    static void LogDebug(const std::string& msg);
-    static void LogError(const std::string& msg);
+    // @param append Informational Append string
+    static StreamLogger LogInfo(const std::string& append = std::string());
+    static StreamLogger LogDebug(const std::string& append = std::string());
+    static StreamLogger LogError(const std::string& append = std::string());
+
+    static void Log(int priority, const std::string& msg);
 
   private:
     static LogStrategy mLoggerType;

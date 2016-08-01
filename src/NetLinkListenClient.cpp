@@ -44,7 +44,7 @@ NetLinkListenClient(auto_ptr<NetLinkSocket> socket)
 {
   if(mpNetLinkSocket.get() == 0)
   {
-    SystemLogger::LogError("No NetLink socket found");
+    SystemLogger::LogError() << "No NetLink socket found";
     // TODO: Throw exception
   }
 }
@@ -83,17 +83,16 @@ Listen()
     }
     else
     {
-      stringstream s;
-      s << "recvmsg() failure for NETLINK socket:"
+      SystemLogger::LogError()
+        << "recvmsg() failure for NETLINK socket:"
         << strerror(errno);
-      SystemLogger::LogError(s.str());
       mpNetLinkSocket->Close();
       return false;
     }
   }
   else if (len == 0)
   {
-    SystemLogger::LogError("peer indicates EoF (closure) for NETLINK socket");
+    SystemLogger::LogError() << "peer indicates EoF (closure) for NETLINK socket";
     mpNetLinkSocket->Close();
     return false;
   }
@@ -107,8 +106,9 @@ Listen()
 
     if(nh->nlmsg_type == NLMSG_ERROR)
     {
-      SystemLogger::LogError(string("peer indicates EoF (closure) for NETLINK socket") +
-                             string(strerror(errno)));
+      SystemLogger::LogError()
+        << "peer indicates EoF (closure) for NETLINK socket"
+        << strerror(errno);
       break;
     }
 
@@ -144,18 +144,14 @@ void
 NetLinkListenClient::
 HandleIpAddressAdded(const string& address, const string& label)
 {
-  stringstream s;
-  s << "Added Address " << address << " Interface " << label << endl;
-  SystemLogger::LogInfo(s.str());
+  SystemLogger::LogInfo() << "Added Address " << address << " Interface " << label;
 }
 
 void
 NetLinkListenClient::
 HandleIpAddressDeleted(const string& address, const string& label)
 {
-  stringstream s;
-  s << "Deleted Address " << address << " Interface " << label << endl;
-  SystemLogger::LogInfo(s.str());
+  SystemLogger::LogInfo() << "Deleted Address " << address << " Interface " << label;
 }
 
 string
@@ -248,9 +244,7 @@ handleAddress(const struct ifaddrmsg* ifAddr, const struct nlmsghdr* nh,
     }
     else
     {
-      stringstream ss;
-      ss << "Unknown RTA TYPE:" << rta->rta_type << endl;
-      SystemLogger::LogError(s.str());
+      SystemLogger::LogError() << "Unknown RTA TYPE:" << rta->rta_type;
     }
     rta = RTA_NEXT(rta, len);
   }
