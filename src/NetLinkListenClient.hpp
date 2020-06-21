@@ -17,7 +17,11 @@ namespace ipmonit
   {
   public:
     // @param socket: Own the responsibility of provided socket
+#if __cplusplus >= 201103L
+    NetLinkListenClient(std::unique_ptr<NetLinkSocket> socket);
+#else
     NetLinkListenClient(std::auto_ptr<NetLinkSocket> socket);
+#endif
 
     // Listen the subscribed group for kernel notification
     bool Listen();
@@ -37,7 +41,11 @@ namespace ipmonit
                               std::string* pOutAddress, std::string* pOutLabel);
 
   private:
+#if __cplusplus >= 201103L
+    std::unique_ptr<NetLinkSocket> mpNetLinkSocket;
+#else
     std::auto_ptr<NetLinkSocket> mpNetLinkSocket;
+#endif
   };
 }
 

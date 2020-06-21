@@ -39,8 +39,13 @@ namespace
 }
 
 NetLinkListenClient::
-NetLinkListenClient(auto_ptr<NetLinkSocket> socket)
+#if __cplusplus >= 201103L
+    NetLinkListenClient(std::unique_ptr<NetLinkSocket> socket)
+  : mpNetLinkSocket(std::move(socket))
+#else
+    NetLinkListenClient(std::auto_ptr<NetLinkSocket> socket)
   : mpNetLinkSocket(socket)
+#endif
 {
   if(mpNetLinkSocket.get() == 0)
   {

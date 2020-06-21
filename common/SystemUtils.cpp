@@ -37,14 +37,17 @@ Daemonify(const string& serverDir)
   if(status < 0)
   {
     cerr << "Error on fork: " << strerror(errno) << endl;
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
   else if(status > 0)
   {
-    exit(0); // Stop the parent process
+    exit(EXIT_SUCCESS); // Stop the parent process
   }
 
   /* Child Process */
+
+  cout << "\nForked daemon process:" << getpid() << endl;
+  cout << "Using syslog for logging, typically into file /var/log/messages" << endl;
 
   // Set unmask
   umask(022);
@@ -53,7 +56,7 @@ Daemonify(const string& serverDir)
   if(setsid() < 0)
   {
     cerr << "Error on setsid(): " << strerror(errno) << endl;
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
   // Change the current working directory to (default) root " / "
@@ -69,7 +72,7 @@ Daemonify(const string& serverDir)
     cerr << "Error in changing dir to: " << server_dir
          << " while daemonizing. Failure: " << strerror(errno)
          << endl;
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
   close(STDIN_FILENO);
@@ -84,26 +87,31 @@ LockPidFile()
   int fd = open(PID_FILE, O_CREAT | O_RDWR, 0640);
   if(fd < 0)
   {
-    SystemLogger::LogError("Cannot open " PID_FILE " file");
-    exit(-1);
+    SystemLogger::LogError("Error: Cannot open " PID_FILE " file");
+    cout << "Error: Cannot open " << PID_FILE << " file";
+    exit(EXIT_FAILURE);
   }
 
   if(lockf(fd, F_TLOCK, 0) < 0)
   {
-    SystemLogger::LogError("Possibly another instance of ipmonit already running. Exiting...");
+    SystemLogger::LogError("Error: Possibly another instance of ipmonit already running. Exiting...");
+    cout << "Error: Possibly another instance of ipmonit already running. Exiting...";
     close(fd);
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
   stringstream s;
   s << getpid();
   if(write(fd, s.str().c_str(), s.str().size()) < 0)
   {
-    SystemLogger::LogError("Cannot write PID to " PID_FILE " Exiting...");
+    SystemLogger::LogError("Error: Cannot write PID to " PID_FILE " Exiting...");
+    cout << "Error: Cannot write PID to " PID_FILE " Exiting...";
     close(fd);
-    exit(-1);
+    exit(EXIT_FAILURE);
   }
 
+  SystemLogger::LogInfo("Error: Written PID:" + s.str() + " to lockfile:" + PID_FILE);
+  cout << "Error: Written PID:" << s.str() << " to lockfile:" << PID_FILE << endl;
   return fd;
 }
 
@@ -121,7 +129,7 @@ CloseLockFile(int fd)
   char buff[32] = {0};
   if(read(fd, buff, 32) < 0)
   {
-    SystemLogger::LogError("Cannot read from " PID_FILE);
+    SystemLogger::LogError("Error: Cannot read from " PID_FILE);
     return;
   }
 
@@ -134,7 +142,7 @@ CloseLockFile(int fd)
     // Delete locked file
     if(unlink(PID_FILE) < 0)
     {
-      SystemLogger::LogError("Deleting lock file " PID_FILE " failed!");
+      SystemLogger::LogError("Error: Deleting lock file " PID_FILE " failed!");
     }
   }
   else

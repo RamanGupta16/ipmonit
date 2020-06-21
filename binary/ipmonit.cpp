@@ -8,6 +8,7 @@
 #include <linux/rtnetlink.h> // RTNLGRP_IPV4_IFADDR
 #include <popt.h>
 #include <stdlib.h> // exit
+#include <unistd.h> // getpid()
 
 #include <iostream>
 #include <sstream>
@@ -21,7 +22,7 @@ int main(int argc, const char* argv[])
   struct poptOption cmd_line_options[] =
   {
     {"daemon", 'b', POPT_ARG_NONE, &run_as_daemon, 0,
-     "Run as daemon process using syslog for logging", 0},
+     "Run as daemon with root login and single instance. Using syslog for logging into file /var/log/messages", 0},
     POPT_AUTOHELP
     POPT_TABLEEND
   };
@@ -39,7 +40,7 @@ int main(int argc, const char* argv[])
   int lockfile_fd = -1;
   if(run_as_daemon)
   {
-    const string server_dir("/root");
+    const string server_dir("/tmp");
     SystemUtils::Daemonify(server_dir);
     SystemLogger::SetLogType(SYSLOG);
 
@@ -52,7 +53,14 @@ int main(int argc, const char* argv[])
   }
 
   // Create rtnetlink socket
+#if __cplusplus >= 201402L
+  unique_ptr<NetLinkSocket> netlink_socket = make_unique<NetLinkSocket>(NETLINK_ROUTE);
+#elif __cplusplus >= 201103L
+  unique_ptr<NetLinkSocket> netlink_socket{new NetLinkSocket(NETLINK_ROUTE)};
+#else
   auto_ptr<NetLinkSocket> netlink_socket(new NetLinkSocket(NETLINK_ROUTE));
+#endif
+
   if(netlink_socket.get() == 0)
   {
     SystemLogger::LogError() << "Cannot allocate memory for NETLINK socket.";
@@ -68,7 +76,11 @@ int main(int argc, const char* argv[])
 
   // Create NETLINK client listen for the subscribed group of notification.
   // This client now assumes socket responsibility
+#if __cplusplus >= 201103L
+  NetLinkListenClient netlink_client(std::move(netlink_socket));
+#else
   NetLinkListenClient netlink_client(netlink_socket);
+#endif
 
   SystemLogger::LogInfo() << "Started ipmonit[PID:" << getpid() << "]...";
 

@@ -2,7 +2,7 @@
 
 #include <string.h>
 #include <syslog.h>
-
+#include <unistd.h> // getpid()
 #include <iostream>
 
 using namespace ipmonit;
