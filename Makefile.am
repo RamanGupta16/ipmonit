@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-CXXFLAGS = -Wall -Wshadow -Werror -Wcast-qual
+CXXFLAGS = -Wall -Wshadow -Werror -Wcast-qual -g
 
 bin_PROGRAMS = ipmonit
 ipmonit_LDADD = -lpopt
