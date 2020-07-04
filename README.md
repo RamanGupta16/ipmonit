@@ -18,7 +18,7 @@ It uses NETLINK sockets to listen for Kernel notifications when IP Interface (IP
 ````````````
 $ ipmonit --help
 Usage: ipmonit [OPTION...]
-   -b, --daemon      Run as daemon process using syslog for logging
+   -b, --daemon      Run as daemon process using syslog for logging into file /var/log/messages
 ````````````
 ## Testing
 * Tested on CentOS6 and CentOS8:
